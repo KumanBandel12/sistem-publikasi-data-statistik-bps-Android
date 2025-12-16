@@ -35,49 +35,121 @@ class NotificationViewModel @Inject constructor(
         loadData()
     }
 
-    // Ubah jadi public jika perlu dipanggil dari luar,
-    // tapi karena dipanggil setFilter (yang public), private oke.
-    private fun loadData() {
+    private fun loadData(page: Int = 0, loadMore: Boolean = false) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-
-            // Cek filter aktif untuk menentukan UseCase mana yang dipakai
-            val flow = if (_state.value.activeFilter == NotificationFilter.ALL) {
-                getNotificationsUseCase()
+            // Set loading state
+            if (loadMore) {
+                _state.value = _state.value.copy(isLoadingMore = true)
             } else {
-                getUnreadNotificationsUseCase()
+                _state.value = _state.value.copy(isLoading = true)
             }
 
-            // 1. Ambil Jumlah Belum Dibaca (Badge) - Tetap dijalankan
+            // Load unread count
             launch {
                 getUnreadCountUseCase().collect { result ->
                     if (result is Resource.Success) {
                         _state.value = _state.value.copy(
-                            unreadCount = result.data ?: 0L
+                            unreadCount = result.data ?: 0
                         )
                     }
                 }
             }
 
-            // 2. Ambil List Notifikasi (Sesuai Filter)
+            // Load notifications based on filter
             launch {
-                flow.collect { result ->
-                    if (result is Resource.Success) {
-                        _state.value = _state.value.copy(
-                            notifications = result.data ?: emptyList(),
-                            isLoading = false
-                        )
-                    } else if (result is Resource.Error) {
-                        _state.value = _state.value.copy(isLoading = false, error = result.message)
+                if (_state.value.activeFilter == NotificationFilter.ALL) {
+                    // Paginated notifications
+                    getNotificationsUseCase(page = page, size = 20).collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                val pagedData = result.data
+                                if (pagedData != null) {
+                                    val updatedList = if (loadMore) {
+                                        _state.value.notifications + pagedData.notifications
+                                    } else {
+                                        pagedData.notifications
+                                    }
+                                    
+                                    _state.value = _state.value.copy(
+                                        notifications = updatedList,
+                                        currentPage = pagedData.currentPage,
+                                        totalPages = pagedData.totalPages,
+                                        isLastPage = pagedData.isLastPage,
+                                        canLoadMore = !pagedData.isLastPage,
+                                        isLoading = false,
+                                        isLoadingMore = false,
+                                        error = null
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                _state.value = _state.value.copy(
+                                    isLoading = false,
+                                    isLoadingMore = false,
+                                    error = result.message
+                                )
+                            }
+                            is Resource.Loading -> {
+                                // Already handled above
+                            }
+                        }
+                    }
+                } else {
+                    // Unread notifications (non-paginated)
+                    getUnreadNotificationsUseCase().collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                _state.value = _state.value.copy(
+                                    notifications = result.data ?: emptyList(),
+                                    isLoading = false,
+                                    isLoadingMore = false,
+                                    canLoadMore = false,
+                                    error = null
+                                )
+                            }
+                            is Resource.Error -> {
+                                _state.value = _state.value.copy(
+                                    isLoading = false,
+                                    isLoadingMore = false,
+                                    error = result.message
+                                )
+                            }
+                            is Resource.Loading -> {
+                                // Already handled above
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
+    fun loadMoreNotifications() {
+        // Only load more if we're on ALL filter and can load more
+        if (_state.value.activeFilter == NotificationFilter.ALL 
+            && _state.value.canLoadMore 
+            && !_state.value.isLoadingMore) {
+            val nextPage = _state.value.currentPage + 1
+            loadData(page = nextPage, loadMore = true)
+        }
+    }
+
+    fun refresh() {
+        // Reset to first page
+        _state.value = _state.value.copy(
+            currentPage = 0,
+            canLoadMore = true
+        )
+        loadData(page = 0, loadMore = false)
+    }
+
     fun setFilter(filter: NotificationFilter) {
-        _state.value = _state.value.copy(activeFilter = filter)
-        loadData() // Reload data sesuai filter
+        _state.value = _state.value.copy(
+            activeFilter = filter,
+            currentPage = 0,
+            canLoadMore = true
+        )
+        loadData(page = 0, loadMore = false)
     }
 
     fun markAsRead(notification: Notification) {
@@ -86,12 +158,12 @@ class NotificationViewModel @Inject constructor(
         viewModelScope.launch {
             markReadUseCase(notification.id).collect {
                 if (it is Resource.Success) {
-                    // Update list lokal
+                    // Update list locally
                     val updatedList = _state.value.notifications.map { item ->
                         if (item.id == notification.id) item.copy(isRead = true) else item
                     }
 
-                    // Kurangi unread count secara manual agar UI responsif
+                    // Decrease unread count manually for responsive UI
                     val currentCount = _state.value.unreadCount
                     val newCount = if (currentCount > 0) currentCount - 1 else 0
 
@@ -108,8 +180,8 @@ class NotificationViewModel @Inject constructor(
         viewModelScope.launch {
             markReadUseCase.all().collect {
                 if (it is Resource.Success) {
-                    // Reload data agar sinkron dengan server
-                    loadData()
+                    // Reload data to sync with server
+                    refresh()
                 }
             }
         }
@@ -119,7 +191,7 @@ class NotificationViewModel @Inject constructor(
         viewModelScope.launch {
             clearAllUseCase().collect { result ->
                 if (result is Resource.Success) {
-                    // Update UI: Kosongkan list dan reset count
+                    // Update UI: Clear list and reset count
                     _state.value = _state.value.copy(
                         notifications = emptyList(),
                         unreadCount = 0

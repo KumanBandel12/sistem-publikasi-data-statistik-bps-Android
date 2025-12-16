@@ -5,6 +5,7 @@ import com.bps.publikasistatistik.data.remote.api.NotificationApi
 import com.bps.publikasistatistik.domain.repository.NotificationRepository
 import com.bps.publikasistatistik.util.Resource
 import com.bps.publikasistatistik.domain.model.Notification
+import com.bps.publikasistatistik.domain.model.PagedNotifications
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -13,79 +14,98 @@ class NotificationRepositoryImpl @Inject constructor(
     private val api: NotificationApi
 ) : NotificationRepository {
 
-    override suspend fun getNotifications(page: Int, size: Int): Flow<Resource<List<Notification>>> = flow {
+    override suspend fun getNotifications(page: Int, size: Int): Flow<Resource<PagedNotifications>> = flow {
         emit(Resource.Loading())
         try {
-            val response = api.getNotifications(page, size)
+            val response = api.getNotifications(page = page, size = size)
             if (response.isSuccessful && response.body()?.success == true) {
-                // Extract notifications from paginated response
-                val data = response.body()?.data?.content?.map { it.toDomain() } ?: emptyList()
-                emit(Resource.Success(data))
+                val pageData = response.body()!!.data
+                val pagedNotifications = PagedNotifications(
+                    notifications = pageData.content.map { it.toDomain() },
+                    totalPages = pageData.totalPages,
+                    currentPage = pageData.number,
+                    totalElements = pageData.totalElements,
+                    isLastPage = pageData.last,
+                    isFirstPage = pageData.first
+                )
+                emit(Resource.Success(pagedNotifications))
             } else {
-                emit(Resource.Error(response.body()?.message ?: "Gagal memuat notifikasi"))
+                emit(Resource.Error(response.body()?.message ?: "Failed to load notifications"))
             }
         } catch (e: Exception) {
-            emit(Resource.Error("Error: ${e.localizedMessage}"))
+            emit(Resource.Error(e.message ?: "Unknown error"))
         }
     }
 
-    override suspend fun markAsRead(id: Long): Flow<Resource<Boolean>> = flow {
+    override suspend fun markAsRead(id: Long): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
         try {
             val response = api.markAsRead(id)
-            if (response.isSuccessful) emit(Resource.Success(true))
-            else emit(Resource.Error("Gagal update status"))
+            if (response.isSuccessful && response.body()?.success == true) {
+                emit(Resource.Success(Unit))
+            } else {
+                emit(Resource.Error(response.body()?.message ?: "Failed to mark as read"))
+            }
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Error"))
+            emit(Resource.Error(e.message ?: "Unknown error"))
         }
     }
 
-    override suspend fun markAllAsRead(): Flow<Resource<Boolean>> = flow {
+    override suspend fun markAllAsRead(): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
         try {
             val response = api.markAllAsRead()
-            if (response.isSuccessful) emit(Resource.Success(true))
-            else emit(Resource.Error("Gagal update status"))
+            if (response.isSuccessful && response.body()?.success == true) {
+                emit(Resource.Success(Unit))
+            } else {
+                emit(Resource.Error(response.body()?.message ?: "Failed to mark all as read"))
+            }
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Error"))
+            emit(Resource.Error(e.message ?: "Unknown error"))
         }
     }
 
-    override suspend fun getUnreadCount(): Flow<Resource<Long>> = flow {
+    override suspend fun getUnreadCount(): Flow<Resource<Int>> = flow {
+        emit(Resource.Loading())
         try {
             val response = api.getUnreadCount()
             if (response.isSuccessful && response.body()?.success == true) {
-                // Extract count from Map<String, Long>
-                val countMap = response.body()?.data ?: emptyMap()
-                val count = countMap["count"] ?: 0L
+                val countMap = response.body()!!.data  // Map<String, Long>
+                val count = countMap["count"]?.toInt() ?: 0  // Extract "count" from map
                 emit(Resource.Success(count))
             } else {
-                emit(Resource.Error("Gagal mengambil jumlah pesan"))
+                emit(Resource.Error(response.body()?.message ?: "Failed to get unread count"))
             }
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Error"))
+            emit(Resource.Error(e.message ?: "Unknown error"))
         }
     }
 
-    override suspend fun deleteNotification(id: Long): Flow<Resource<Boolean>> = flow {
+    override suspend fun deleteNotification(id: Long): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
         try {
-            // Pastikan NotificationApi memiliki fungsi deleteNotification(id)
             val response = api.deleteNotification(id)
-            if (response.isSuccessful) emit(Resource.Success(true))
-            else emit(Resource.Error("Gagal menghapus notifikasi"))
+            if (response.isSuccessful && response.body()?.success == true) {
+                emit(Resource.Success(Unit))
+            } else {
+                emit(Resource.Error(response.body()?.message ?: "Failed to delete notification"))
+            }
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Error"))
+            emit(Resource.Error(e.message ?: "Unknown error"))
         }
     }
 
-    override suspend fun clearAllNotifications(): Flow<Resource<Boolean>> = flow {
+    override suspend fun clearAllNotifications(): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
         try {
             val response = api.clearAllNotifications()
             if (response.isSuccessful && response.body()?.success == true) {
-                emit(Resource.Success(true))
+                emit(Resource.Success(Unit))
             } else {
-                emit(Resource.Error(response.body()?.message ?: "Gagal menghapus semua notifikasi"))
+                emit(Resource.Error(response.body()?.message ?: "Failed to clear notifications"))
             }
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Error"))
+            emit(Resource.Error(e.message ?: "Unknown error"))
         }
     }
 
