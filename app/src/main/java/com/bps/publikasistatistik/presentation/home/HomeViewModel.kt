@@ -6,18 +6,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bps.publikasistatistik.domain.usecase.publication.GetMostDownloadedUseCase
 import com.bps.publikasistatistik.domain.usecase.publication.GetPublicationsUseCase
+import com.bps.publikasistatistik.domain.usecase.user.GetProfileUseCase
 import com.bps.publikasistatistik.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getPublicationsUseCase: GetPublicationsUseCase,
-    private val getMostDownloadedUseCase: GetMostDownloadedUseCase
+    private val getMostDownloadedUseCase: GetMostDownloadedUseCase,
+    private val getProfileUseCase: GetProfileUseCase
 ) : ViewModel() {
 
     private val _state = mutableStateOf(HomeUiState())
@@ -29,6 +32,39 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadHomeData()
+        loadUserProfile()
+    }
+
+    fun getGreeting(): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when (hour) {
+            in 0..10 -> "Selamat Pagi"
+            in 11..14 -> "Selamat Siang"
+            in 15..18 -> "Selamat Sore"
+            else -> "Selamat Malam"
+        }
+    }
+
+    fun onTabSelected(tab: HomeTab) {
+        _state.value = _state.value.copy(selectedTab = tab)
+    }
+
+    private fun loadUserProfile() {
+        viewModelScope.launch {
+            getProfileUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(user = result.data)
+                    }
+                    is Resource.Error -> {
+                        // Silently fail - user info is not critical for home screen
+                    }
+                    is Resource.Loading -> {
+                        // Do nothing
+                    }
+                }
+            }
+        }
     }
 
     private fun loadHomeData() {

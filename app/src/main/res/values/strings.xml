@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">BPS Publikasi Statistik</string>
+    
+    <!-- Home Screen Redesign Strings -->
+    <string name="greeting_morning">Selamat Pagi</string>
+    <string name="greeting_afternoon">Selamat Siang</string>
+    <string name="greeting_evening">Selamat Sore</string>
+    <string name="greeting_night">Selamat Malam</string>
+    <string name="welcome_banner_title">Selamat Datang!</string>
+    <string name="welcome_banner_subtitle">Temukan publikasi statistik terpercaya</string>
+    <string name="search_placeholder">Cari data statistik</string>
+    <string name="tab_latest">Terbaru</string>
+    <string name="tab_popular">Populer</string>
+    <string name="section_latest_publications">Publikasi Terbaru</string>
+    <string name="section_popular_publications">Terpopuler</string>
+    <string name="see_all">Selengkapnya</string>
+    <string name="views_count">%d dilihat</string>
+    <string name="downloads_count">%d unduhan</string>
+    <string name="bottom_nav_home">Beranda</string>
+    <string name="bottom_nav_categories">Kategori</string>
+    <string name="bottom_nav_search">Cari</string>
+    <string name="bottom_nav_saved">Tersimpan</string>
+    <string name="bottom_nav_profile">Profil</string>
 </resources>
