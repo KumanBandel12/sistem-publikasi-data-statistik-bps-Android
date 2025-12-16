@@ -1,5 +1,6 @@
 package com.bps.publikasistatistik.data.remote.api
 
+import com.bps.publikasistatistik.data.remote.dto.request.ForgotPasswordRequestDto
 import com.bps.publikasistatistik.data.remote.dto.request.LoginRequestDto
 import com.bps.publikasistatistik.data.remote.dto.request.RegisterRequestDto
 import com.bps.publikasistatistik.data.remote.dto.response.ApiResponseDto
@@ -15,4 +16,10 @@ interface AuthApi {
 
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequestDto): Response<ApiResponseDto<UserResponseDto>>
+
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequestDto): Response<ApiResponseDto<Void>>
+
+    @POST("logout")
+    suspend fun logout(): Response<ApiResponseDto<Any>>
 }

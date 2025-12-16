@@ -21,24 +21,30 @@ class AuthPreferences @Inject constructor(
 ) {
     private val TOKEN_KEY = stringPreferencesKey("jwt_token")
 
-    // Ambil Token (Flow agar reaktif)
-    fun getAuthToken(): Flow<String?> {
-        return context.dataStore.data.map { preferences ->
-            preferences[TOKEN_KEY]
-        }
+    private val KEY_USER_ROLE = stringPreferencesKey("user_role")
+
+    // Simpan Role
+    suspend fun saveUserRole(role: String) {
+        context.dataStore.edit { it[KEY_USER_ROLE] = role }
     }
+
+    // Ambil Role
+    fun getUserRole(): Flow<String?> = context.dataStore.data.map { it[KEY_USER_ROLE] }
+
+    // Ambil Token (Flow agar reaktif)
+    fun getAuthToken(): Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
+
 
     // Simpan Token
     suspend fun saveAuthToken(token: String) {
-        context.dataStore.edit { preferences ->
-            preferences[TOKEN_KEY] = token
-        }
+        context.dataStore.edit { it[TOKEN_KEY] = token }
     }
 
     // Hapus Token (Logout)
     suspend fun clearAuthToken() {
         context.dataStore.edit { preferences ->
             preferences.remove(TOKEN_KEY)
+            preferences.remove(KEY_USER_ROLE)
         }
     }
 }

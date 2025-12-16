@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bps.publikasistatistik.domain.usecase.publication.GetPublicationsUseCase
+import com.bps.publikasistatistik.domain.usecase.publication.GetSearchSuggestionsUseCase
 import com.bps.publikasistatistik.domain.usecase.search.ClearSearchHistoryUseCase
 import com.bps.publikasistatistik.domain.usecase.search.GetSearchHistoryUseCase
 import com.bps.publikasistatistik.util.Resource
@@ -18,7 +19,8 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val getPublicationsUseCase: GetPublicationsUseCase,
     private val getSearchHistoryUseCase: GetSearchHistoryUseCase,
-    private val clearSearchHistoryUseCase: ClearSearchHistoryUseCase
+    private val clearSearchHistoryUseCase: ClearSearchHistoryUseCase,
+    private val getSearchSuggestionsUseCase: GetSearchSuggestionsUseCase
 ) : ViewModel() {
 
     // State untuk UI (Loading, Error, Data List)
@@ -30,6 +32,7 @@ class SearchViewModel @Inject constructor(
     val filterState: State<SearchFilterState> = _filterState
 
     private var searchJob: Job? = null
+    private var suggestionJob: Job? = null
 
     init {
         loadSearchHistory() // Load history saat pertama kali dibuka
@@ -41,19 +44,18 @@ class SearchViewModel @Inject constructor(
         val filters = _filterState.value
 
         viewModelScope.launch {
-            // Cek apakah query kosong DAN tidak ada filter lain yang aktif
+            // Saat mulai mencari hasil akhir, kosongkan suggestion agar list-nya hilang
+            _state.value = _state.value.copy(suggestions = emptyList())
+
             val isQueryEmpty = filters.query.isBlank()
             val isFilterActive = filters.categoryId != null || filters.year != null
 
-            // Jika kosong total -> Kembali ke mode Initial (Tampilkan History)
             if (isQueryEmpty && !isFilterActive) {
-                _state.value = _state.value.copy(isInitial = true, publications = emptyList())
-                loadSearchHistory() // Refresh history siapa tau ada baru
+                _state.value = _state.value.copy(isInitial = true, searchResults = emptyList())
+                loadSearchHistory()
                 return@launch
             }
 
-            // Jika ada query atau filter -> Lakukan Request ke Backend
-            // Ubah query string kosong menjadi null agar backend handle dengan benar
             val queryParam = if (isQueryEmpty) null else filters.query
 
             getPublicationsUseCase(
@@ -69,7 +71,7 @@ class SearchViewModel @Inject constructor(
                     is Resource.Success -> {
                         _state.value = _state.value.copy(
                             isLoading = false,
-                            publications = result.data ?: emptyList()
+                            searchResults = result.data ?: emptyList()
                         )
                     }
                     is Resource.Error -> {
@@ -85,22 +87,45 @@ class SearchViewModel @Inject constructor(
     fun onQueryChange(newQuery: String) {
         _filterState.value = _filterState.value.copy(query = newQuery)
 
-        // Debounce: Tunggu 500ms user berhenti ngetik baru request
+        // 1. Update text di UI langsung
+        _state.value = _state.value.copy(query = newQuery)
+
+        // 2. Batalkan job sebelumnya agar tidak spam
         searchJob?.cancel()
-        searchJob = viewModelScope.launch {
+        suggestionJob?.cancel()
+
+        suggestionJob = viewModelScope.launch {
             if (newQuery.isNotBlank()) {
-                delay(500L) // Delay 0.5 detik
-                searchPublications()
+                delay(300L) // Debounce dikit
+                // Ambil Suggestion (Autocomplete)
+                getSearchSuggestionsUseCase(newQuery).collect { result ->
+                    if (result is Resource.Success) {
+                        _state.value = _state.value.copy(
+                            suggestions = result.data ?: emptyList()
+                        )
+                    }
+                }
             } else {
-                // Jika dihapus sampai kosong, langsung reset ke history
-                searchPublications()
+                // Jika dihapus sampai kosong, reset suggestion & tampilkan history
+                _state.value = _state.value.copy(suggestions = emptyList(), isInitial = true)
+                loadSearchHistory()
             }
         }
     }
 
+    // Saat user klik salah satu saran
+    fun onSuggestionClick(suggestion: String) {
+        // Set text
+        _filterState.value = _filterState.value.copy(query = suggestion)
+        _state.value = _state.value.copy(query = suggestion, suggestions = emptyList())
+
+        // Langsung cari hasil akhirnya
+        searchPublications()
+    }
+
     fun onCategoryChange(id: Long?) {
         _filterState.value = _filterState.value.copy(categoryId = id)
-        searchPublications() // Langsung refresh
+        searchPublications()
     }
 
     fun onYearChange(year: Int?) {
@@ -114,8 +139,8 @@ class SearchViewModel @Inject constructor(
     }
 
     fun clearFilters() {
-        _filterState.value = SearchFilterState() // Reset semua filter ke default
-        searchPublications() // Balik ke initial state
+        _filterState.value = SearchFilterState()
+        searchPublications()
     }
 
     // --- HISTORY LOGIC ---
@@ -133,9 +158,7 @@ class SearchViewModel @Inject constructor(
     fun clearHistory() {
         viewModelScope.launch {
             clearSearchHistoryUseCase().collect {
-                if (it is Resource.Success) {
-                    _state.value = _state.value.copy(searchHistory = emptyList())
-                }
+                if (it is Resource.Success) _state.value = _state.value.copy(searchHistory = emptyList())
             }
         }
     }

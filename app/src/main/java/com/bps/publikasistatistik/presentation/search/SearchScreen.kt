@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager // 1. IMPORT INI
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,6 +29,7 @@ import androidx.navigation.NavController
 import com.bps.publikasistatistik.domain.model.SearchHistory
 import com.bps.publikasistatistik.presentation.common.components.BpsSearchBar
 import com.bps.publikasistatistik.presentation.home.components.PublicationCard
+import com.bps.publikasistatistik.presentation.home.components.PublicationCardSkeleton
 import com.bps.publikasistatistik.presentation.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,10 +41,16 @@ fun SearchScreen(
     val state = viewModel.state.value
     val filters = viewModel.filterState.value
 
-    // Agar keyboard otomatis muncul saat masuk halaman ini (Opsional, UX lebih baik)
+    // 2. DEFINISIKAN FOCUS MANAGER
+    val focusManager = LocalFocusManager.current
+
     val focusRequester = remember { FocusRequester() }
+
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        // Fokus hanya jika query kosong (baru masuk)
+        if (state.query.isEmpty()) {
+            focusRequester.requestFocus()
+        }
     }
 
     Scaffold(
@@ -52,22 +61,26 @@ fun SearchScreen(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
-                // 1. Search Bar (Asli - Bisa Diketik)
+                // 3. SEARCH BAR
                 BpsSearchBar(
                     query = filters.query,
                     onQueryChange = viewModel::onQueryChange,
                     modifier = Modifier.focusRequester(focusRequester),
                     placeholder = "Cari judul, kategori...",
+                    // Tambahkan onSearch untuk handle Enter di keyboard
+                    onSearch = {
+                        focusManager.clearFocus() // Tutup keyboard
+                        viewModel.searchPublications()
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 2. Filter Chips (Horizontal Scroll)
+                // 4. FILTER CHIPS
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Tombol Reset (Hanya muncul jika ada filter aktif)
                     val isFilterActive = filters.categoryId != null ||
                             filters.year != null ||
                             filters.sort != "latest"
@@ -75,7 +88,10 @@ fun SearchScreen(
                     if (isFilterActive) {
                         FilterChip(
                             selected = true,
-                            onClick = { viewModel.clearFilters() },
+                            onClick = {
+                                focusManager.clearFocus() // Tutup keyboard saat reset
+                                viewModel.clearFilters()
+                            },
                             label = { Text("Reset") },
                             leadingIcon = { Icon(Icons.Default.Close, null) },
                             colors = FilterChipDefaults.filterChipColors(
@@ -89,6 +105,7 @@ fun SearchScreen(
                     FilterChip(
                         selected = filters.sort == "popular",
                         onClick = {
+                            focusManager.clearFocus() // Tutup keyboard
                             val newSort = if (filters.sort == "popular") "latest" else "popular"
                             viewModel.onSortChange(newSort)
                         },
@@ -96,12 +113,13 @@ fun SearchScreen(
                         leadingIcon = { if(filters.sort == "popular") Icon(Icons.Default.Sort, null) else null }
                     )
 
-                    // Tahun Filter (Contoh Hardcoded - Nanti bisa dinamis dari API)
+                    // Tahun Filter
                     val years = listOf(2024, 2023, 2022)
                     years.forEach { y ->
                         FilterChip(
                             selected = filters.year == y,
                             onClick = {
+                                focusManager.clearFocus() // Tutup keyboard
                                 val newYear = if (filters.year == y) null else y
                                 viewModel.onYearChange(newYear)
                             },
@@ -109,10 +127,11 @@ fun SearchScreen(
                         )
                     }
 
-                    // Kategori Filter (Contoh ID 1 & 2 - Nanti bisa dinamis)
+                    // Kategori Filter
                     FilterChip(
                         selected = filters.categoryId == 1L,
                         onClick = {
+                            focusManager.clearFocus() // Tutup keyboard
                             val newCat = if (filters.categoryId == 1L) null else 1L
                             viewModel.onCategoryChange(newCat)
                         },
@@ -121,6 +140,7 @@ fun SearchScreen(
                     FilterChip(
                         selected = filters.categoryId == 2L,
                         onClick = {
+                            focusManager.clearFocus() // Tutup keyboard
                             val newCat = if (filters.categoryId == 2L) null else 2L
                             viewModel.onCategoryChange(newCat)
                         },
@@ -132,49 +152,80 @@ fun SearchScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
 
-            // --- LOGIKA TAMPILAN KONTEN ---
-
             if (state.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                // Tampilkan 6 Skeleton Item
+                LazyColumn(contentPadding = PaddingValues(16.dp)) {
+                    items(6) {
+                        PublicationCardSkeleton()
+                    }
+                }
             }
+
+            // 5. SUGGESTION (AUTOCOMPLETE)
+            else if (state.suggestions.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    items(state.suggestions) { suggestion ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    focusManager.clearFocus() // Tutup Keyboard
+                                    viewModel.onSuggestionClick(suggestion)
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = suggestion,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        Divider(color = Color.LightGray.copy(alpha = 0.3f))
+                    }
+                }
+            }
+
             else if (state.error != null) {
-                Text(
-                    text = state.error,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                Text(text = state.error, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.Center))
             }
-            // Tampilan Awal: RIWAYAT PENCARIAN
+
+            // 6. HISTORY PENCARIAN
             else if (state.isInitial) {
                 HistorySection(
                     history = state.searchHistory,
                     onClear = { viewModel.clearHistory() },
-                    onItemClick = { keyword -> viewModel.onQueryChange(keyword) }
+                    onItemClick = { keyword ->
+                        focusManager.clearFocus() // Tutup Keyboard
+                        viewModel.onSuggestionClick(keyword)
+                    }
                 )
             }
-            // Tampilan Hasil Kosong
-            else if (state.publications.isEmpty()) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Tidak ditemukan hasil", style = MaterialTheme.typography.titleMedium)
-                    Text("Coba kata kunci atau filter lain", color = Color.Gray)
-                }
+
+            else if (state.searchResults.isEmpty()) {
+                Text("Tidak ditemukan", modifier = Modifier.align(Alignment.Center))
             }
-            // Tampilan Hasil: LIST PUBLIKASI
+
+            // 7. HASIL PENCARIAN
             else {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(state.publications) { pub ->
+                    items(state.searchResults) { pub ->
                         PublicationCard(
                             title = pub.title,
                             coverUrl = pub.coverUrl,
                             category = pub.categoryName,
                             year = pub.year,
-                            onClick = { navController.navigate(Screen.Detail.createRoute(pub.id)) }
+                            onClick = {
+                                focusManager.clearFocus() // Tutup Keyboard sebelum navigasi
+                                navController.navigate(Screen.Detail.createRoute(pub.id))
+                            }
                         )
                     }
                 }
@@ -218,7 +269,7 @@ fun HistorySection(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onItemClick(item.keyword) }
+                            .clickable { onItemClick(item.keyword) } // Handler sudah handle clearFocus
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

@@ -13,5 +13,8 @@ data class CategoryResponseDto(
     val description: String?,
 
     @SerializedName("publicationCount")
-    val publicationCount: Long?
+    val publicationCount: Long?,
+
+    @SerializedName("subCategories")
+    val subCategories: List<CategoryResponseDto>? = null
 )

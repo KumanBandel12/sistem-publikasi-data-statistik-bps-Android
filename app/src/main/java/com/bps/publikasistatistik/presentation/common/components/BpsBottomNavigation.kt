@@ -9,52 +9,51 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.bps.publikasistatistik.presentation.navigation.BottomNavItem
 import com.bps.publikasistatistik.presentation.theme.BpsNavigationItem
-import com.bps.publikasistatistik.presentation.theme.BpsNavigationSelected
 import com.bps.publikasistatistik.presentation.theme.BpsPrimary
 
 @Composable
-fun BpsBottomNavigation(navController: NavController) {
-    val items = listOf(
+fun BpsBottomNavigation(
+    navController: NavController,
+    userRole: String = "user" // Default role
+) {
+    // 1. List Menu Dasar
+    val items = mutableListOf(
         BottomNavItem.Home,
         BottomNavItem.Category,
-        BottomNavItem.Search,
-        BottomNavItem.Download,
-        BottomNavItem.Profile
+        BottomNavItem.Search
     )
 
-    // Cek route saat ini agar ikon aktif menyala
+    // 2. Logika Role: Admin -> Upload, User -> Download
+    if (userRole.equals("admin", ignoreCase = true)) {
+        items.add(BottomNavItem.Upload)
+    } else {
+        items.add(BottomNavItem.Download)
+    }
+
+    // 3. Tambahkan Profile terakhir
+    items.add(BottomNavItem.Profile)
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Hanya tampilkan BottomBar jika di layar utama (bukan Login/Splash/Detail)
+    // Tampilkan hanya jika route saat ini ada di list items
     val showBottomBar = items.any { it.route == currentRoute }
 
     if (showBottomBar) {
         NavigationBar(
-            containerColor = Color.White, // Background putih sesuai desain
+            containerColor = Color.White,
             tonalElevation = 8.dp
         ) {
             items.forEach { item ->
                 val isSelected = currentRoute == item.route
 
                 NavigationBarItem(
-                    icon = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.title
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = item.title,
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    },
+                    icon = { Icon(item.icon, contentDescription = item.title) },
+                    label = { Text(item.title, style = MaterialTheme.typography.labelSmall) },
                     selected = isSelected,
                     onClick = {
                         if (currentRoute != item.route) {
                             navController.navigate(item.route) {
-                                // Agar saat back tidak numpuk stack
                                 popUpTo(BottomNavItem.Home.route) { saveState = true }
                                 launchSingleTop = true
                                 restoreState = true
@@ -64,7 +63,7 @@ fun BpsBottomNavigation(navController: NavController) {
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = BpsPrimary,
                         selectedTextColor = BpsPrimary,
-                        indicatorColor = BpsNavigationItem, // Warna bg ikon saat aktif (biru transparan)
+                        indicatorColor = BpsNavigationItem,
                         unselectedIconColor = Color.Gray,
                         unselectedTextColor = Color.Gray
                     )

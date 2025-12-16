@@ -8,6 +8,9 @@ import com.bps.publikasistatistik.domain.model.User
 import com.bps.publikasistatistik.domain.usecase.user.GetProfileUseCase
 import com.bps.publikasistatistik.domain.usecase.user.UpdateProfileUseCase
 import com.bps.publikasistatistik.domain.usecase.user.UploadProfilePictureUseCase
+import com.bps.publikasistatistik.domain.usecase.user.DeleteAccountUseCase
+import com.bps.publikasistatistik.domain.usecase.user.DeleteProfilePictureUseCase
+import com.bps.publikasistatistik.data.manager.SessionManager
 import com.bps.publikasistatistik.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -17,7 +20,10 @@ import javax.inject.Inject
 class EditProfileViewModel @Inject constructor(
     private val getProfileUseCase: GetProfileUseCase,
     private val updateProfileUseCase: UpdateProfileUseCase,
-    private val uploadProfilePictureUseCase: UploadProfilePictureUseCase
+    private val uploadProfilePictureUseCase: UploadProfilePictureUseCase,
+    private val deleteAccountUseCase: DeleteAccountUseCase,
+    private val sessionManager: SessionManager,
+    private val deleteProfilePictureUseCase: DeleteProfilePictureUseCase
 ) : ViewModel() {
 
     private val _state = mutableStateOf(EditProfileUiState())
@@ -107,6 +113,54 @@ class EditProfileViewModel @Inject constructor(
                     is Resource.Success -> {
                         _state.value = _state.value.copy(isLoading = false, isSuccess = true)
                         // Refresh data profil agar foto baru muncul
+                        loadCurrentProfile()
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(isLoading = false, error = result.message)
+                    }
+                }
+            }
+        }
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            deleteAccountUseCase().collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _state.value = _state.value.copy(isLoading = true)
+                    }
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(isLoading = false)
+                        // 3. Panggil logout otomatis jika sukses hapus
+                        sessionManager.triggerLogout()
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = result.message
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun deleteProfilePicture() {
+        viewModelScope.launch {
+            deleteProfilePictureUseCase().collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _state.value = _state.value.copy(isLoading = true)
+                    }
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            isSuccess = true,
+                            // Update URL foto di state menjadi null/baru agar UI berubah
+                            profilePictureUrl = result.data?.profilePictureUrl
+                        )
+                        // Refresh data profil menyeluruh
                         loadCurrentProfile()
                     }
                     is Resource.Error -> {

@@ -14,4 +14,16 @@ interface NotificationApi {
 
     @PUT("notifications/read-all")
     suspend fun markAllAsRead(): Response<ApiResponseDto<Void>>
+
+    @GET("notifications/unread/count")
+    suspend fun getUnreadCount(): Response<ApiResponseDto<Long>>
+
+    @DELETE("notifications/{id}")
+    suspend fun deleteNotification(@Path("id") id: Long): Response<ApiResponseDto<Void>>
+
+    @DELETE("notifications/clear-all")
+    suspend fun clearAllNotifications(): Response<ApiResponseDto<Void>>
+
+    @GET("notifications/unread")
+    suspend fun getUnreadNotifications(): Response<ApiResponseDto<List<NotificationResponseDto>>>
 }

@@ -55,8 +55,26 @@ class ProfileViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
-            logoutUseCase() // Hapus token dari DataStore
-            _state.value = _state.value.copy(isLoggedOut = true)
+            logoutUseCase().collect { result ->
+                when(result) {
+                    is Resource.Loading -> {
+                        _state.value = _state.value.copy(isLoading = true)
+                    }
+                    is Resource.Success -> {
+                        // Redirect ke Login Screen
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            isLoggedOut = true
+                        )
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            isLoggedOut = true
+                        )
+                    }
+                }
+            }
         }
     }
 }

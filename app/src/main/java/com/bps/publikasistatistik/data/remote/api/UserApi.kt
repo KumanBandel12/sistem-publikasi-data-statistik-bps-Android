@@ -21,4 +21,10 @@ interface UserApi {
     @Multipart
     @POST("profile/picture")
     suspend fun uploadProfilePicture(@Part file: MultipartBody.Part): Response<ApiResponseDto<UserResponseDto>>
+
+    @DELETE("profile")
+    suspend fun deleteAccount(): Response<ApiResponseDto<Void>>
+
+    @DELETE("profile/picture")
+    suspend fun deleteProfilePicture(): Response<ApiResponseDto<UserResponseDto>>
 }

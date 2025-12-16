@@ -1,4 +1,4 @@
-package com.bps.publikasistatistik.data.remote
+package com.bps.publikasistatistik.data.remote.interceptor
 
 import com.bps.publikasistatistik.data.local.AuthPreferences
 import kotlinx.coroutines.flow.first

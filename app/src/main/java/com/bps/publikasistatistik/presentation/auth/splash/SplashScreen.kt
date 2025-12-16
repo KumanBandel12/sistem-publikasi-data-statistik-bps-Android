@@ -24,13 +24,11 @@ fun SplashScreen(
     // Observasi status login
     LaunchedEffect(isUserLoggedIn) {
         if (isUserLoggedIn == true) {
-            // Sudah login -> Ke Home
             navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Splash.route) { inclusive = true }
             }
         } else if (isUserLoggedIn == false) {
-            // Belum login -> Ke Login
-            navController.navigate(Screen.Login.route) {
+            navController.navigate(Screen.Welcome.route) {
                 popUpTo(Screen.Splash.route) { inclusive = true }
             }
         }

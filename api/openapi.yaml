@@ -1,0 +1,1274 @@
+openapi: 3.1.0
+info:
+  title: Sistem Publikasi Data Statistik BPS API
+  description: REST API for BPS Statistical Publication Management System
+  contact:
+    name: BPS Developer Team
+    email: developer@bps.go.id
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+tags:
+  - name: Categories
+    description: Category management APIs
+  - name: Publications
+    description: Publication management APIs
+  - name: Search History
+    description: Search history management APIs
+  - name: Authentication
+    description: Authentication management APIs
+  - name: Notifications
+    description: Notification management APIs
+  - name: User Profile
+    description: User profile management APIs
+paths:
+  /api/publications/{id}:
+    get:
+      tags:
+        - Publications
+      summary: Get publication by ID
+      description: Get publication details by ID (increments view count)
+      operationId: getPublicationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePublicationResponse'
+      security:
+        - Bearer Authentication: []
+    put:
+      tags:
+        - Publications
+      summary: Update publication
+      description: Update publication metadata (Admin only)
+      operationId: updatePublication
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicationRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePublicationResponse'
+      security:
+        - Bearer Authentication: []
+    delete:
+      tags:
+        - Publications
+      summary: Delete publication
+      description: Delete publication and its file (Admin only)
+      operationId: deletePublication
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+  /api/profile:
+    get:
+      tags:
+        - User Profile
+      summary: Get user profile
+      description: Get current logged in user profile
+      operationId: getProfile
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserResponse'
+      security:
+        - Bearer Authentication: []
+    put:
+      tags:
+        - User Profile
+      summary: Update profile
+      description: Update user profile (username and/or email)
+      operationId: updateProfile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserResponse'
+      security:
+        - Bearer Authentication: []
+    delete:
+      tags:
+        - User Profile
+      summary: Delete account
+      description: Delete user account permanently
+      operationId: deleteAccount
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+  /api/profile/password:
+    put:
+      tags:
+        - User Profile
+      summary: Change password
+      description: Change user password
+      operationId: changePassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+  /api/notifications/{id}/read:
+    put:
+      tags:
+        - Notifications
+      summary: Mark as read
+      description: Mark single notification as read
+      operationId: markAsRead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+  /api/notifications/read-all:
+    put:
+      tags:
+        - Notifications
+      summary: Mark all as read
+      description: Mark all notifications as read
+      operationId: markAllAsRead
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+  /api/categories/{id}:
+    get:
+      tags:
+        - Categories
+      summary: Get category by ID
+      description: Get category details by ID
+      operationId: getCategoryById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseCategoryResponse'
+      security:
+        - Bearer Authentication: []
+    put:
+      tags:
+        - Categories
+      summary: Update category
+      description: Update category by ID (Admin only)
+      operationId: updateCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseCategoryResponse'
+      security:
+        - Bearer Authentication: []
+    delete:
+      tags:
+        - Categories
+      summary: Delete category
+      description: Delete category by ID (Admin only)
+      operationId: deleteCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+  /api/publications:
+    get:
+      tags:
+        - Publications
+      summary: Get all publications
+      description: Get list of all publications or search by keyword
+      operationId: getAllPublications
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListPublicationResponse'
+      security:
+        - Bearer Authentication: []
+    post:
+      tags:
+        - Publications
+      summary: Upload publication
+      description: Upload a new publication with file (Admin only)
+      operationId: uploadPublication
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                request:
+                  $ref: '#/components/schemas/PublicationRequest'
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePublicationResponse'
+      security:
+        - Bearer Authentication: []
+  /api/profile/picture:
+    get:
+      tags:
+        - User Profile
+      summary: Get profile picture
+      description: Get current user profile picture
+      operationId: getProfilePicture
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+      security:
+        - Bearer Authentication: []
+    post:
+      tags:
+        - User Profile
+      summary: Upload profile picture
+      description: Upload or update user profile picture
+      operationId: uploadProfilePicture
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserResponse'
+      security:
+        - Bearer Authentication: []
+    delete:
+      tags:
+        - User Profile
+      summary: Delete profile picture
+      description: Delete current user profile picture
+      operationId: deleteProfilePicture
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserResponse'
+      security:
+        - Bearer Authentication: []
+  /api/categories:
+    get:
+      tags:
+        - Categories
+      summary: Get all categories
+      description: Get list of all categories with publication count
+      operationId: getAllCategories
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListCategoryResponse'
+      security:
+        - Bearer Authentication: []
+    post:
+      tags:
+        - Categories
+      summary: Create category
+      description: Create a new category (Admin only)
+      operationId: createCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseCategoryResponse'
+      security:
+        - Bearer Authentication: []
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Register a new user account
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserResponse'
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user and return JWT token
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseAuthResponse'
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Forgot password
+      description: >-
+        Reset password using security questions (email + date of birth + place
+        of birth)
+      operationId: forgotPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+  /api/search/history:
+    get:
+      tags:
+        - Search History
+      summary: Get search history
+      description: Get user's recent search history (last 10)
+      operationId: getSearchHistory
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListSearchHistoryResponse'
+      security:
+        - Bearer Authentication: []
+    delete:
+      tags:
+        - Search History
+      summary: Clear search history
+      description: Clear all search history for current user
+      operationId: clearSearchHistory
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+  /api/publications/{id}/download:
+    get:
+      tags:
+        - Publications
+      summary: Download publication file
+      description: Download publication file (increments download count)
+      operationId: downloadPublication
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+      security:
+        - Bearer Authentication: []
+  /api/publications/{id}/cover:
+    get:
+      tags:
+        - Publications
+      summary: Get publication cover image
+      description: Get cover image of publication
+      operationId: getCoverImage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+      security:
+        - Bearer Authentication: []
+  /api/publications/suggestions:
+    get:
+      tags:
+        - Publications
+      summary: Get search suggestions
+      description: Get list of publication titles for autocomplete
+      operationId: getSuggestions
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListString'
+      security:
+        - Bearer Authentication: []
+  /api/publications/most-downloaded:
+    get:
+      tags:
+        - Publications
+      summary: Get most downloaded publications
+      description: Get top 10 most downloaded publications
+      operationId: getMostDownloaded
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListPublicationResponse'
+      security:
+        - Bearer Authentication: []
+  /api/publications/latest:
+    get:
+      tags:
+        - Publications
+      summary: Get latest publications
+      description: Get top 10 latest publications
+      operationId: getLatestPublications
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListPublicationResponse'
+      security:
+        - Bearer Authentication: []
+  /api/notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Get user notifications
+      description: Get paginated list of user notifications
+      operationId: getNotifications
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponsePageNotificationResponse'
+      security:
+        - Bearer Authentication: []
+  /api/notifications/unread:
+    get:
+      tags:
+        - Notifications
+      summary: Get unread notifications
+      description: Get list of unread notifications only
+      operationId: getUnreadNotifications
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListNotificationResponse'
+      security:
+        - Bearer Authentication: []
+  /api/notifications/unread/count:
+    get:
+      tags:
+        - Notifications
+      summary: Get unread count
+      description: Get count of unread notifications (for badge)
+      operationId: getUnreadCount
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseMapStringLong'
+      security:
+        - Bearer Authentication: []
+  /api/categories/{id}/subcategories:
+    get:
+      tags:
+        - Categories
+      summary: Get sub-categories
+      description: Get all sub-categories of a parent category
+      operationId: getSubCategories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListCategoryResponse'
+      security:
+        - Bearer Authentication: []
+  /api/categories/tree:
+    get:
+      tags:
+        - Categories
+      summary: Get category tree
+      description: Get all categories in hierarchical tree structure with sub-categories
+      operationId: getCategoryTree
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseListCategoryResponse'
+      security:
+        - Bearer Authentication: []
+  /api/notifications/{id}:
+    delete:
+      tags:
+        - Notifications
+      summary: Delete notification
+      description: Delete single notification
+      operationId: deleteNotification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+  /api/notifications/clear-all:
+    delete:
+      tags:
+        - Notifications
+      summary: Clear all read
+      description: Delete all read notifications
+      operationId: clearAllRead
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+      security:
+        - Bearer Authentication: []
+components:
+  schemas:
+    PublicationRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          minLength: 0
+        description:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        year:
+          type: integer
+          format: int32
+        author:
+          type: string
+          maxLength: 100
+          minLength: 0
+        catalogNumber:
+          type: string
+          maxLength: 50
+          minLength: 0
+        publicationNumber:
+          type: string
+          maxLength: 50
+          minLength: 0
+        issnIsbn:
+          type: string
+          maxLength: 50
+          minLength: 0
+        releaseFrequency:
+          type: string
+          maxLength: 50
+          minLength: 0
+        releaseDate:
+          type: string
+          format: date
+        language:
+          type: string
+          maxLength: 50
+          minLength: 0
+      required:
+        - categoryId
+        - title
+        - year
+    ApiResponsePublicationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PublicationResponse'
+    CategoryResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        publicationCount:
+          type: integer
+          format: int64
+        level:
+          type: integer
+          format: int32
+        displayOrder:
+          type: integer
+          format: int32
+        parentCategory:
+          $ref: '#/components/schemas/CategoryResponse'
+        subCategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryResponse'
+        createdAt:
+          type: string
+          format: date-time
+    PublicationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        description:
+          type: string
+        catalogNumber:
+          type: string
+        publicationNumber:
+          type: string
+        issnIsbn:
+          type: string
+        releaseFrequency:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+        language:
+          type: string
+        coverImage:
+          type: string
+        coverUrl:
+          type: string
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+        fileSizeFormatted:
+          type: string
+        year:
+          type: integer
+          format: int32
+        author:
+          type: string
+        views:
+          type: integer
+          format: int32
+        downloads:
+          type: integer
+          format: int32
+        category:
+          $ref: '#/components/schemas/CategoryResponse'
+        uploadedBy:
+          $ref: '#/components/schemas/UserResponse'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        fullName:
+          type: string
+        gender:
+          type: string
+        placeOfBirth:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        phoneNumber:
+          type: string
+        address:
+          type: string
+        profilePicture:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    UpdateProfileRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 50
+          minLength: 3
+        email:
+          type: string
+        fullName:
+          type: string
+          maxLength: 100
+          minLength: 0
+        gender:
+          type: string
+          maxLength: 20
+          minLength: 0
+        placeOfBirth:
+          type: string
+          maxLength: 100
+          minLength: 0
+        dateOfBirth:
+          type: string
+          format: date
+        phoneNumber:
+          type: string
+          pattern: ^(\+62|62|0)[0-9]{9,12}$
+        address:
+          type: string
+    ApiResponseUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/UserResponse'
+    ChangePasswordRequest:
+      type: object
+      properties:
+        oldPassword:
+          type: string
+        newPassword:
+          type: string
+      required:
+        - newPassword
+        - oldPassword
+    ApiResponseVoid:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+    CategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 0
+        description:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+        displayOrder:
+          type: integer
+          format: int32
+      required:
+        - name
+    ApiResponseCategoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CategoryResponse'
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 50
+          minLength: 3
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+        - username
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+    ApiResponseAuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthResponse'
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        type:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserResponse'
+    ForgotPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        placeOfBirth:
+          type: string
+        newPassword:
+          type: string
+        confirmPassword:
+          type: string
+      required:
+        - confirmPassword
+        - dateOfBirth
+        - email
+        - newPassword
+        - placeOfBirth
+    ApiResponseListSearchHistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchHistoryResponse'
+    SearchHistoryResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        keyword:
+          type: string
+        searchedAt:
+          type: string
+          format: date-time
+    ApiResponseListPublicationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicationResponse'
+    ApiResponseListString:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            type: string
+    ApiResponsePageNotificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PageNotificationResponse'
+    NotificationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+        relatedEntityType:
+          type: string
+        relatedEntityId:
+          type: integer
+          format: int64
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    PageNotificationResponse:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationResponse'
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        first:
+          type: boolean
+        last:
+          type: boolean
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: '#/components/schemas/PageableObject'
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        unpaged:
+          type: boolean
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        paged:
+          type: boolean
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+    ApiResponseListNotificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationResponse'
+    ApiResponseMapStringLong:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+    ApiResponseListCategoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryResponse'
+  securitySchemes:
+    Bearer Authentication:
+      type: http
+      in: header
+      scheme: bearer
+      bearerFormat: JWT

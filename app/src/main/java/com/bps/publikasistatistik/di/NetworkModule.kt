@@ -1,7 +1,8 @@
 package com.bps.publikasistatistik.di
 
 import com.bps.publikasistatistik.util.Constants
-import com.bps.publikasistatistik.data.remote.AuthInterceptor
+import com.bps.publikasistatistik.data.remote.interceptor.AuthInterceptor
+import com.bps.publikasistatistik.data.remote.interceptor.TokenExpirationInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,10 +20,12 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        authInterceptor: AuthInterceptor
+        authInterceptor: AuthInterceptor,
+        tokenExpirationInterceptor: TokenExpirationInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
+            .addInterceptor(tokenExpirationInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })

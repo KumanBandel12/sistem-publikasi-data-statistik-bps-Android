@@ -20,7 +20,10 @@ import androidx.navigation.NavController
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import com.bps.publikasistatistik.util.UriUtils
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -30,8 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +49,8 @@ fun EditProfileScreen(
 ) {
     val state = viewModel.state.value
     val context = LocalContext.current
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     // Handle Sukses/Error
     LaunchedEffect(state.isSuccess) {
@@ -92,7 +102,7 @@ fun EditProfileScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(24.dp)
                 .verticalScroll(rememberScrollState()) // Agar bisa discroll
         ) {
             Box(
@@ -128,6 +138,19 @@ fun EditProfileScreen(
                             .padding(4.dp)
                             .size(16.dp),
                         tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            if (!state.profilePictureUrl.isNullOrEmpty()) {
+                TextButton(
+                    onClick = { viewModel.deleteProfilePicture() },
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    enabled = !state.isLoading
+                ) {
+                    Text(
+                        text = "Hapus Foto",
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -232,8 +255,58 @@ fun EditProfileScreen(
                 }
             }
 
-            // Spacer tambahan di bawah agar tidak mentok
+            Spacer(modifier = Modifier.height(24.dp))
+            Divider()
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedButton(
+                onClick = { showDeleteDialog = true }, // Munculkan dialog
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error // Warna Merah
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                } else {
+                    Icon(Icons.Default.Delete, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Hapus Akun Permanen")
+                }
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        // --- DIALOG KONFIRMASI ---
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Hapus Akun?") },
+                text = {
+                    Text("Tindakan ini tidak dapat dibatalkan. Semua data profil dan riwayat Anda akan dihapus permanen.")
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            viewModel.deleteAccount() // Panggil fungsi hapus
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Ya, Hapus")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Batal")
+                    }
+                }
+            )
         }
     }
 }

@@ -14,9 +14,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // Provide Context & AuthPreferences sudah ada (biasanya implicit),
-    // tapi kita buat eksplisit provider untuk Downloader saja.
-
     @Provides
     @Singleton
     fun provideAndroidDownloader(

@@ -32,20 +32,21 @@ fun ProfileScreen(
 ) {
     val state = viewModel.state.value
 
-    // Efek Logout: Kembali ke Login
+    // Efek Logout: Kembali ke Login jika flag isLoggedOut aktif
     LaunchedEffect(state.isLoggedOut) {
         if (state.isLoggedOut) {
             navController.navigate(Screen.Login.route) {
-                popUpTo(0) { inclusive = true } // Hapus semua stack
+                popUpTo(0) { inclusive = true } // Hapus semua stack agar tidak bisa Back
             }
         }
     }
 
-    // Refresh data setiap kali layar dibuka (agar update setelah edit)
+    // Refresh data setiap kali layar dibuka
     LaunchedEffect(Unit) {
         viewModel.refreshProfile()
     }
 
+    // --- KONTEN UTAMA ---
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -79,8 +80,9 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Nama & Email
-                if (state.isLoading) {
-                    CircularProgressIndicator(color = Color.White)
+                // Catatan: Loading di sini hanya indikator kecil untuk teks
+                if (state.isLoading && state.user == null) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
                     Text(
                         text = state.user?.fullName ?: state.user?.username ?: "Pengguna",
@@ -104,7 +106,7 @@ fun ProfileScreen(
             ProfileMenuItem(
                 icon = Icons.Default.Edit,
                 title = "Edit Profil",
-                onClick = { navController.navigate("profile/edit") } // Route Edit
+                onClick = { navController.navigate("profile/edit") }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -112,7 +114,7 @@ fun ProfileScreen(
             ProfileMenuItem(
                 icon = Icons.Default.Lock,
                 title = "Ubah Password",
-                onClick = { navController.navigate("profile/password") } // Route Ganti Password
+                onClick = { navController.navigate("profile/password") }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -120,7 +122,7 @@ fun ProfileScreen(
             ProfileMenuItem(
                 icon = Icons.Default.Palette,
                 title = "Tema Aplikasi",
-                onClick = { navController.navigate("profile/theme") } // Route Tema
+                onClick = { navController.navigate("profile/theme") }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -138,13 +140,40 @@ fun ProfileScreen(
                 onClick = { viewModel.logout() },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                // Disable tombol jika sedang loading agar tidak diklik 2x
+                enabled = !state.isLoading
             ) {
                 Icon(Icons.Outlined.ExitToApp, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Keluar")
             }
         }
+    }
+
+    // --- LOADING DIALOG (Overlay) ---
+    // Muncul saat isLoading = true (khususnya saat Logout berjalan)
+    if (state.isLoading) {
+        AlertDialog(
+            onDismissRequest = {}, // Tidak bisa ditutup user (Blocking)
+            title = { Text("Mohon Tunggu") },
+            text = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(36.dp),
+                        color = BpsPrimary
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text("Sedang memproses...")
+                }
+            },
+            confirmButton = {}, // Tidak perlu tombol, akan hilang otomatis saat sukses/gagal
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        )
     }
 }
 

@@ -122,4 +122,38 @@ class UserRepositoryImpl @Inject constructor(
             emit(Resource.Error("Error: ${e.localizedMessage}"))
         }
     }
+
+    override suspend fun deleteAccount(): Flow<Resource<Boolean>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.deleteAccount()
+            if (response.isSuccessful && response.body()?.success == true) {
+                emit(Resource.Success(true))
+            } else {
+                emit(Resource.Error(response.body()?.message ?: "Gagal menghapus akun"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error("Error: ${e.localizedMessage}"))
+        }
+    }
+
+    override suspend fun deleteProfilePicture(): Flow<Resource<User>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.deleteProfilePicture()
+
+            if (response.isSuccessful && response.body()?.success == true) {
+                val data = response.body()?.data
+                if (data != null) {
+                    emit(Resource.Success(data.toDomain()))
+                } else {
+                    emit(Resource.Error("Gagal menghapus foto"))
+                }
+            } else {
+                emit(Resource.Error(response.body()?.message ?: "Gagal menghapus foto"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error("Error: ${e.localizedMessage}"))
+        }
+    }
 }

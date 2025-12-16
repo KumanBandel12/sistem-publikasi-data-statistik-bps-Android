@@ -1,21 +1,32 @@
 package com.bps.publikasistatistik.presentation.publication.detail
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.bps.publikasistatistik.presentation.home.components.PublicationDetailSkeleton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +37,26 @@ fun PublicationDetailScreen(
     val state = viewModel.state.value
     val publication = state.publication
 
+    val context = LocalContext.current
+
+    // State untuk Dialog Konfirmasi Hapus
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // Efek jika berhasil dihapus -> Kembali ke halaman sebelumnya
+    LaunchedEffect(state.isDeleted) {
+        if (state.isDeleted) {
+            Toast.makeText(context, "Publikasi berhasil dihapus", Toast.LENGTH_SHORT).show()
+            navController.popBackStack()
+        }
+    }
+
+    // Efek jika gagal hapus
+    LaunchedEffect(state.deleteError) {
+        if (state.deleteError != null) {
+            Toast.makeText(context, state.deleteError, Toast.LENGTH_LONG).show()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -33,6 +64,22 @@ fun PublicationDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                    }
+                },
+                actions = {
+                    // Tombol EDIT
+                    IconButton(onClick = {
+                        // Navigasi ke Edit Screen dengan ID
+                        state.publication?.id?.let { id ->
+                            navController.navigate("edit_publication/$id")
+                        }
+                    }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Data", tint = Color.White)
+                    }
+
+                    // Tombol HAPUS
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Hapus Data", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -45,7 +92,7 @@ fun PublicationDetailScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             if (state.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                PublicationDetailSkeleton()
             }
 
             if (state.error != null) {
@@ -126,6 +173,30 @@ fun PublicationDetailScreen(
                 }
             }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Hapus Publikasi?") },
+            text = { Text("Data yang dihapus tidak dapat dikembalikan. Apakah Anda yakin?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.deletePublication() // Action Hapus
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Hapus")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Batal")
+                }
+            }
+        )
     }
 }
 

@@ -8,4 +8,8 @@ interface NotificationRepository {
     suspend fun getNotifications(): Flow<Resource<List<Notification>>>
     suspend fun markAsRead(id: Long): Flow<Resource<Boolean>>
     suspend fun markAllAsRead(): Flow<Resource<Boolean>>
+    suspend fun getUnreadCount(): Flow<Resource<Long>>
+    suspend fun deleteNotification(id: Long): Flow<Resource<Boolean>>
+    suspend fun clearAllNotifications(): Flow<Resource<Boolean>>
+    suspend fun getUnreadNotifications(): Flow<Resource<List<Notification>>>
 }
