@@ -12,6 +12,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +30,20 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadHomeData()
+    }
+
+    fun getGreeting(): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when (hour) {
+            in 0..10 -> "Selamat Pagi"
+            in 11..14 -> "Selamat Siang"
+            in 15..18 -> "Selamat Sore"
+            else -> "Selamat Malam"
+        }
+    }
+
+    fun onTabSelected(tab: HomeTab) {
+        _state.value = _state.value.copy(selectedTab = tab)
     }
 
     private fun loadHomeData() {

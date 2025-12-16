@@ -154,6 +154,20 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        composable(
+                            route = "all_publications/{filter}",
+                            arguments = listOf(navArgument("filter") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val filter = backStackEntry.arguments?.getString("filter") ?: "latest"
+                            com.bps.publikasistatistik.presentation.publication.AllPublicationsScreen(
+                                navController = navController,
+                                filter = filter,
+                                onNavigateToDetail = { pubId ->
+                                    navController.navigate(Screen.Detail.createRoute(pubId))
+                                }
+                            )
+                        }
+
                         composable("notifications") {
                             NotificationScreen(navController = navController)
                         }
