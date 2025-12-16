@@ -19,16 +19,20 @@ class NotificationRepositoryImpl @Inject constructor(
         try {
             val response = api.getNotifications(page = page, size = size)
             if (response.isSuccessful && response.body()?.success == true) {
-                val pageData = response.body()!!.data
-                val pagedNotifications = PagedNotifications(
-                    notifications = pageData.content.map { it.toDomain() },
-                    totalPages = pageData.totalPages,
-                    currentPage = pageData.number,
-                    totalElements = pageData.totalElements,
-                    isLastPage = pageData.last,
-                    isFirstPage = pageData.first
-                )
-                emit(Resource.Success(pagedNotifications))
+                val pageData = response.body()?.data
+                if (pageData != null) {
+                    val pagedNotifications = PagedNotifications(
+                        notifications = pageData.content.map { it.toDomain() },
+                        totalPages = pageData.totalPages,
+                        currentPage = pageData.number,
+                        totalElements = pageData.totalElements,
+                        isLastPage = pageData.last,
+                        isFirstPage = pageData.first
+                    )
+                    emit(Resource.Success(pagedNotifications))
+                } else {
+                    emit(Resource.Error("Data is null"))
+                }
             } else {
                 emit(Resource.Error(response.body()?.message ?: "Failed to load notifications"))
             }
@@ -70,8 +74,8 @@ class NotificationRepositoryImpl @Inject constructor(
         try {
             val response = api.getUnreadCount()
             if (response.isSuccessful && response.body()?.success == true) {
-                val countMap = response.body()!!.data  // Map<String, Long>
-                val count = countMap["count"]?.toInt() ?: 0  // Extract "count" from map
+                val countMap = response.body()?.data  // Map<String, Long>
+                val count = countMap?.get("count")?.toInt() ?: 0  // Extract "count" from map
                 emit(Resource.Success(count))
             } else {
                 emit(Resource.Error(response.body()?.message ?: "Failed to get unread count"))

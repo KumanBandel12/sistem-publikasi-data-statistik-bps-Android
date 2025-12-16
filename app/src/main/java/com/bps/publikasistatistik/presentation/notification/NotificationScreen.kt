@@ -38,12 +38,15 @@ fun NotificationScreen(
     val state = viewModel.state.value
     val listState = rememberLazyListState()
     
+    // Threshold for triggering load more (items from bottom)
+    val loadMoreThreshold = 3
+    
     // Detect when user scrolls to the bottom
     val shouldLoadMore = remember {
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
             val totalItems = listState.layoutInfo.totalItemsCount
-            lastVisibleItem != null && lastVisibleItem.index >= totalItems - 3 && totalItems > 0
+            lastVisibleItem != null && lastVisibleItem.index >= totalItems - loadMoreThreshold && totalItems > 0
         }
     }
     

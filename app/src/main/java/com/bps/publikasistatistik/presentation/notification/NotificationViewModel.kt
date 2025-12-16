@@ -126,9 +126,11 @@ class NotificationViewModel @Inject constructor(
 
     fun loadMoreNotifications() {
         // Only load more if we're on ALL filter and can load more
-        if (_state.value.activeFilter == NotificationFilter.ALL 
+        val shouldLoad = _state.value.activeFilter == NotificationFilter.ALL 
             && _state.value.canLoadMore 
-            && !_state.value.isLoadingMore) {
+            && !_state.value.isLoadingMore
+        
+        if (shouldLoad) {
             val nextPage = _state.value.currentPage + 1
             loadData(page = nextPage, loadMore = true)
         }
