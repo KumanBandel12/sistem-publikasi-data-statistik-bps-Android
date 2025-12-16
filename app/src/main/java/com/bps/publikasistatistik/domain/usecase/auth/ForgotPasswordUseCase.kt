@@ -6,5 +6,11 @@ import javax.inject.Inject
 class ForgotPasswordUseCase @Inject constructor(
     private val repository: AuthRepository
 ) {
-    suspend operator fun invoke(email: String) = repository.forgotPassword(email)
+    suspend operator fun invoke(
+        email: String,
+        dateOfBirth: String,
+        placeOfBirth: String,
+        newPassword: String,
+        confirmPassword: String
+    ) = repository.forgotPassword(email, dateOfBirth, placeOfBirth, newPassword, confirmPassword)
 }
