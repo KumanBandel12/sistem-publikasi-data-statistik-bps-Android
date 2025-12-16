@@ -13,12 +13,14 @@ class NotificationRepositoryImpl @Inject constructor(
     private val api: NotificationApi
 ) : NotificationRepository {
 
-    override suspend fun getNotifications(): Flow<Resource<List<Notification>>> = flow {
+    override suspend fun getNotifications(page: Int, size: Int): Flow<Resource<List<Notification>>> = flow {
         emit(Resource.Loading())
         try {
-            val response = api.getNotifications()
+            val response = api.getNotifications(page, size)
             if (response.isSuccessful && response.body()?.success == true) {
-                val data = response.body()?.data?.map { it.toDomain() } ?: emptyList()
+                // Extract notifications from paginated response
+                val pageData = response.body()?.data
+                val data = pageData?.content?.map { it.toDomain() } ?: emptyList()
                 emit(Resource.Success(data))
             } else {
                 emit(Resource.Error(response.body()?.message ?: "Gagal memuat notifikasi"))
@@ -50,10 +52,12 @@ class NotificationRepositoryImpl @Inject constructor(
 
     override suspend fun getUnreadCount(): Flow<Resource<Long>> = flow {
         try {
-            // Pastikan NotificationApi memiliki fungsi getUnreadCount()
             val response = api.getUnreadCount()
             if (response.isSuccessful && response.body()?.success == true) {
-                emit(Resource.Success(response.body()?.data ?: 0L))
+                // Extract count from Map<String, Long>
+                val countMap = response.body()?.data ?: emptyMap()
+                val count = countMap["count"] ?: 0L
+                emit(Resource.Success(count))
             } else {
                 emit(Resource.Error("Gagal mengambil jumlah pesan"))
             }
