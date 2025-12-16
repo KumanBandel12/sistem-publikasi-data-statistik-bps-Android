@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.bps.publikasistatistik.domain.model.Publication
 import com.bps.publikasistatistik.presentation.home.components.*
 import com.bps.publikasistatistik.presentation.navigation.BottomNavItem
@@ -59,19 +61,16 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Profile Picture Placeholder
-                        Box(
+                        // Profile Picture
+                        AsyncImage(
+                            model = state.user?.profilePictureUrl ?: "https://ui-avatars.com/api/?name=${state.user?.fullName ?: state.user?.username ?: "User"}&background=random",
+                            contentDescription = "Profile Picture",
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "👤",
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        }
+                            contentScale = ContentScale.Crop
+                        )
                         
                         // Greeting
                         Column {
@@ -82,7 +81,7 @@ fun HomeScreen(
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(
-                                    text = "Pengguna",
+                                    text = state.user?.fullName ?: state.user?.username ?: "Pengguna",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface

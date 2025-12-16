@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bps.publikasistatistik.domain.usecase.publication.GetMostDownloadedUseCase
 import com.bps.publikasistatistik.domain.usecase.publication.GetPublicationsUseCase
+import com.bps.publikasistatistik.domain.usecase.user.GetProfileUseCase
 import com.bps.publikasistatistik.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -18,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getPublicationsUseCase: GetPublicationsUseCase,
-    private val getMostDownloadedUseCase: GetMostDownloadedUseCase
+    private val getMostDownloadedUseCase: GetMostDownloadedUseCase,
+    private val getProfileUseCase: GetProfileUseCase
 ) : ViewModel() {
 
     private val _state = mutableStateOf(HomeUiState())
@@ -30,6 +32,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadHomeData()
+        loadUserProfile()
     }
 
     fun getGreeting(): String {
@@ -44,6 +47,24 @@ class HomeViewModel @Inject constructor(
 
     fun onTabSelected(tab: HomeTab) {
         _state.value = _state.value.copy(selectedTab = tab)
+    }
+
+    private fun loadUserProfile() {
+        viewModelScope.launch {
+            getProfileUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(user = result.data)
+                    }
+                    is Resource.Error -> {
+                        // Silently fail - user info is not critical for home screen
+                    }
+                    is Resource.Loading -> {
+                        // Do nothing
+                    }
+                }
+            }
+        }
     }
 
     private fun loadHomeData() {
