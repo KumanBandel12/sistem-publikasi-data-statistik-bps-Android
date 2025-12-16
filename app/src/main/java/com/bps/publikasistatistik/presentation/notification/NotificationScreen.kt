@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -13,6 +14,10 @@ import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bps.publikasistatistik.domain.model.Notification
 import com.bps.publikasistatistik.presentation.home.components.NotificationItemSkeleton
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +36,30 @@ fun NotificationScreen(
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.value
+    val listState = rememberLazyListState()
+    
+    // Threshold for triggering load more (items from bottom)
+    val loadMoreThreshold = 3
+    
+    // Detect when user scrolls to the bottom
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+            val totalItems = listState.layoutInfo.totalItemsCount
+            lastVisibleItem != null && lastVisibleItem.index >= totalItems - loadMoreThreshold && totalItems > 0
+        }
+    }
+    
+    // Trigger load more when scrolled to bottom
+    LaunchedEffect(listState) {
+        snapshotFlow { shouldLoadMore.value }
+            .distinctUntilChanged()
+            .collect { shouldLoad ->
+                if (shouldLoad && state.canLoadMore && !state.isLoadingMore && !state.isLoading) {
+                    viewModel.loadMoreNotifications()
+                }
+            }
+    }
 
     Scaffold(
         topBar = {
@@ -92,15 +122,15 @@ fun NotificationScreen(
             // --- 2. KONTEN LIST ---
             Box(modifier = Modifier.fillMaxSize()) {
 
-                // Loading State
-                if (state.isLoading) {
+                // Loading State (initial load)
+                if (state.isLoading && state.notifications.isEmpty()) {
                     LazyColumn {
                         items(8) { NotificationItemSkeleton() }
                     }
                 }
 
                 // Empty State
-                else if (state.notifications.isEmpty()) {
+                else if (state.notifications.isEmpty() && !state.isLoading) {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -113,7 +143,7 @@ fun NotificationScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Pesan berbeda tergantung filter
+                        // Different message depending on filter
                         val emptyMessage = if (state.activeFilter == NotificationFilter.UNREAD)
                             "Tidak ada pesan belum dibaca"
                         else
@@ -125,13 +155,30 @@ fun NotificationScreen(
 
                 // List Data
                 else {
-                    LazyColumn(contentPadding = PaddingValues(16.dp)) {
+                    LazyColumn(
+                        state = listState,
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
                         items(state.notifications) { item ->
                             NotificationItem(
                                 notification = item,
                                 onClick = { viewModel.markAsRead(item) }
                             )
                             Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        
+                        // Loading indicator at the bottom when loading more
+                        if (state.isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
                     }
                 }
