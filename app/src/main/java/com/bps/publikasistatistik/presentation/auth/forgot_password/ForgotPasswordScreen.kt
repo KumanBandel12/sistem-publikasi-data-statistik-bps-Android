@@ -106,8 +106,7 @@ fun ForgotPasswordScreen(
                     label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    isError = state.error != null && state.email.isBlank()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -118,8 +117,7 @@ fun ForgotPasswordScreen(
                     label = { Text("Tanggal Lahir (YYYY-MM-DD)") },
                     placeholder = { Text("Contoh: 1990-12-31") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    isError = state.error != null && state.dateOfBirth.isBlank()
+                    singleLine = true
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -129,8 +127,7 @@ fun ForgotPasswordScreen(
                     onValueChange = viewModel::onPlaceOfBirthChange,
                     label = { Text("Tempat Lahir") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    isError = state.error != null && state.placeOfBirth.isBlank()
+                    singleLine = true
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -150,8 +147,7 @@ fun ForgotPasswordScreen(
                                 contentDescription = if (passwordVisible) "Sembunyikan password" else "Tampilkan password"
                             )
                         }
-                    },
-                    isError = state.error != null && state.newPassword.isBlank()
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -171,8 +167,7 @@ fun ForgotPasswordScreen(
                                 contentDescription = if (confirmPasswordVisible) "Sembunyikan password" else "Tampilkan password"
                             )
                         }
-                    },
-                    isError = state.error != null && state.confirmPassword.isBlank()
+                    }
                 )
 
                 if (state.error != null) {
