@@ -15,8 +15,9 @@ data class PageNotificationResponseDto(
     @SerializedName("size")
     val size: Int,
     
+    /** Current page (0-based) */
     @SerializedName("number")
-    val number: Int,  // Current page (0-based)
+    val number: Int,
     
     @SerializedName("first")
     val first: Boolean,

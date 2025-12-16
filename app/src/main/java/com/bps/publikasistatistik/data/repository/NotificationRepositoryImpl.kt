@@ -19,8 +19,7 @@ class NotificationRepositoryImpl @Inject constructor(
             val response = api.getNotifications(page, size)
             if (response.isSuccessful && response.body()?.success == true) {
                 // Extract notifications from paginated response
-                val pageData = response.body()?.data
-                val data = pageData?.content?.map { it.toDomain() } ?: emptyList()
+                val data = response.body()?.data?.content?.map { it.toDomain() } ?: emptyList()
                 emit(Resource.Success(data))
             } else {
                 emit(Resource.Error(response.body()?.message ?: "Gagal memuat notifikasi"))
