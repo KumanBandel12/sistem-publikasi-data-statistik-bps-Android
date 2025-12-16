@@ -5,6 +5,7 @@ import com.bps.publikasistatistik.data.remote.dto.response.ApiResponseDto
 import com.bps.publikasistatistik.data.remote.dto.response.PublicationResponseDto
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -36,6 +37,9 @@ interface PublicationApi {
         @Query("limit") limit: Int = 10 // Default ambil 10 terpopuler
     ): Response<ApiResponseDto<List<PublicationResponseDto>>>
 
+    @GET("publications/latest")
+    suspend fun getLatestPublications(): Response<ApiResponseDto<List<PublicationResponseDto>>>
+
     @GET("publications/suggestions")
     suspend fun getSuggestions(
         @Query("keyword") keyword: String
@@ -59,4 +63,14 @@ interface PublicationApi {
         @Path("id") id: Long,
         @Body request: PublicationRequestDto
     ): Response<ApiResponseDto<PublicationResponseDto>>
+
+    @GET("publications/{id}/download")
+    suspend fun downloadPublication(
+        @Path("id") id: Long
+    ): Response<ResponseBody>
+
+    @GET("publications/{id}/cover")
+    suspend fun getCoverImage(
+        @Path("id") id: Long
+    ): Response<ResponseBody>
 }
