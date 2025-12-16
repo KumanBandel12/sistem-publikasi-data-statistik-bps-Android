@@ -78,10 +78,22 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun forgotPassword(email: String): Flow<Resource<String>> = flow {
+    override suspend fun forgotPassword(
+        email: String,
+        dateOfBirth: String,
+        placeOfBirth: String,
+        newPassword: String,
+        confirmPassword: String
+    ): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
-            val request = ForgotPasswordRequestDto(email)
+            val request = ForgotPasswordRequestDto(
+                email = email,
+                dateOfBirth = dateOfBirth,
+                placeOfBirth = placeOfBirth,
+                newPassword = newPassword,
+                confirmPassword = confirmPassword
+            )
             val response = api.forgotPassword(request)
 
             if (response.isSuccessful && response.body()?.success == true) {
