@@ -17,19 +17,32 @@ fun BpsBottomNavigation(
     navController: NavController,
     userRole: String = "user" // Default role
 ) {
-    // Always show 5 tabs for all users (matching new design)
-    val items = listOf(
-        BottomNavItem.Home,
-        BottomNavItem.Category,
-        BottomNavItem.Search,
-        BottomNavItem.Download,  // Changed to "Tersimpan" (Saved)
-        BottomNavItem.Profile
-    )
+    // Determine which items to show based on user role
+    val items = if (userRole.equals("ADMIN", ignoreCase = true)) {
+        // Admin sees all 6 tabs including Upload
+        listOf(
+            BottomNavItem.Home,
+            BottomNavItem.Category,
+            BottomNavItem.Search,
+            BottomNavItem.Download,
+            BottomNavItem.Upload,
+            BottomNavItem.Profile
+        )
+    } else {
+        // Regular users see 5 tabs (no Upload)
+        listOf(
+            BottomNavItem.Home,
+            BottomNavItem.Category,
+            BottomNavItem.Search,
+            BottomNavItem.Download,
+            BottomNavItem.Profile
+        )
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Tampilkan hanya jika route saat ini ada di list items
+    // Show bottom bar only if current route is in the items list
     val showBottomBar = items.any { it.route == currentRoute }
 
     if (showBottomBar) {

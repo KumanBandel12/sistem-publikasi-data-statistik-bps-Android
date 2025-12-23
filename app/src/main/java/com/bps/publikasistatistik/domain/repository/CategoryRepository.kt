@@ -8,4 +8,7 @@ interface CategoryRepository {
     suspend fun getCategories(): Flow<Resource<List<Category>>>
     suspend fun getSubCategories(parentId: Long): Flow<Resource<List<Category>>>
     suspend fun getCategoryTree(): Flow<Resource<List<Category>>>
+    suspend fun createSubCategory(categoryId: Long, name: String, description: String?): Flow<Resource<Category>>
+    suspend fun updateSubCategory(id: Long, name: String, description: String?): Flow<Resource<Category>>
+    suspend fun deleteSubCategory(id: Long): Flow<Resource<Unit>>
 }

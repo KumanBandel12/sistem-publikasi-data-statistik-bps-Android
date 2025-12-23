@@ -12,6 +12,9 @@ data class PublicationRequestDto(
     @SerializedName("categoryId")
     val categoryId: Long,
 
+    @SerializedName("subCategoryId")
+    val subCategoryId: Long? = null,
+
     @SerializedName("year")
     val year: Int,
 
@@ -35,5 +38,8 @@ data class PublicationRequestDto(
     val releaseDate: String? = null, // Format: YYYY-MM-DD
 
     @SerializedName("language")
-    val language: String? = "Indonesia"
+    val language: String? = "Indonesia",
+
+    @SerializedName("isFeatured")
+    val isFeatured: Boolean? = false
 )
