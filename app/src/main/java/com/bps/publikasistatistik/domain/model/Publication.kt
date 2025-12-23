@@ -10,5 +10,7 @@ data class Publication(
     val views: Int,
     val downloads: Int,
     val categoryName: String,
+    val subCategoryName: String, // Sub-category name for gradient labels
+    val publishDate: String?, // Publish date for featured cards
     val size: String // Ukuran file yang sudah diformat (misal "2.5 MB")
 )

@@ -40,6 +40,9 @@ interface PublicationApi {
     @GET("publications/latest")
     suspend fun getLatestPublications(): Response<ApiResponseDto<List<PublicationResponseDto>>>
 
+    @GET("publications/featured")
+    suspend fun getFeaturedPublications(): Response<ApiResponseDto<List<PublicationResponseDto>>>
+
     @GET("publications/suggestions")
     suspend fun getSuggestions(
         @Query("keyword") keyword: String
