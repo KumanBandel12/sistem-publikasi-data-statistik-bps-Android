@@ -467,7 +467,7 @@ private fun UploadPublicationContent(viewModel: UploadViewModel) {
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-        Divider()
+        HorizontalDivider()
         Spacer(modifier = Modifier.height(8.dp))
 
         // 13. Upload File Area

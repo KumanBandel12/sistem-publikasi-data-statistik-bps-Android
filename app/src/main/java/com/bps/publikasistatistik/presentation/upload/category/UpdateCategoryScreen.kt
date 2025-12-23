@@ -320,5 +320,5 @@ private fun SubCategoryListItem(
             }
         }
     }
-    Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+    HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 }
