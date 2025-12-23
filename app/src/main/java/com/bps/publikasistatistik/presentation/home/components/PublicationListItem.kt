@@ -77,8 +77,7 @@ fun PublicationListItem(
                         .background(Color.LightGray),
                     contentScale = ContentScale.Crop
                 )
-                )
-                
+
                 // Content
                 Column(
                     modifier = Modifier
@@ -93,68 +92,69 @@ fun PublicationListItem(
                             style = MaterialTheme.typography.labelSmall,
                             color = TextSecondary
                         )
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    // Title
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    
-                    if (!description.isNullOrEmpty()) {
+
                         Spacer(modifier = Modifier.height(4.dp))
+
+                        // Title
                         Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            text = title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
+
+                        if (!description.isNullOrEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
-                }
-                
-                // Stats
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+
+                    // Stats
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.RemoveRedEye,
-                            contentDescription = "Views",
-                            modifier = Modifier.size(14.dp),
-                            tint = TextSecondary
-                        )
-                        Text(
-                            text = formatCount(views),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary
-                        )
-                    }
-                    
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Download,
-                            contentDescription = "Downloads",
-                            modifier = Modifier.size(14.dp),
-                            tint = TextSecondary
-                        )
-                        Text(
-                            text = formatCount(downloads),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.RemoveRedEye,
+                                contentDescription = "Views",
+                                modifier = Modifier.size(14.dp),
+                                tint = TextSecondary
+                            )
+                            Text(
+                                text = formatCount(views),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextSecondary
+                            )
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Download,
+                                contentDescription = "Downloads",
+                                modifier = Modifier.size(14.dp),
+                                tint = TextSecondary
+                            )
+                            Text(
+                                text = formatCount(downloads),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextSecondary
+                            )
+                        }
                     }
                 }
             }

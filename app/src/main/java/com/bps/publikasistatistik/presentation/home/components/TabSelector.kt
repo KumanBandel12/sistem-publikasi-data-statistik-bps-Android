@@ -19,50 +19,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bps.publikasistatistik.R
-import com.bps.publikasistatistik.presentation.home.HomeTab
-
-@Composable
-fun TabSelector(
-    selectedTab: HomeTab,
-    onTabSelected: (HomeTab) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Terbaru Tab
-        TabItem(
-            text = stringResource(R.string.tab_latest),
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.AutoAwesome,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-            },
-            isSelected = selectedTab == HomeTab.TERBARU,
-            onClick = { onTabSelected(HomeTab.TERBARU) }
-        )
-        
-        // Populer Tab
-        TabItem(
-            text = stringResource(R.string.tab_popular),
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.TrendingUp,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-            },
-            isSelected = selectedTab == HomeTab.POPULER,
-            onClick = { onTabSelected(HomeTab.POPULER) }
-        )
-    }
-}
 
 @Composable
 private fun TabItem(

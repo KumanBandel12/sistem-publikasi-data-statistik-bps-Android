@@ -64,7 +64,7 @@ dependencies {
 
     // Dependency Injection (Hilt)
     implementation("com.google.dagger:hilt-android:2.50")
-    implementation(libs.androidx.compose.ui.text)
+    implementation("androidx.compose.ui:ui-text")
     kapt("com.google.dagger:hilt-android-compiler:2.50")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 

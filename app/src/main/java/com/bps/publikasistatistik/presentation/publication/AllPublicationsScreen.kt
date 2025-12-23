@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.bps.publikasistatistik.presentation.home.HomeTab
 import com.bps.publikasistatistik.presentation.home.HomeViewModel
 import com.bps.publikasistatistik.presentation.home.components.PublicationCardSkeleton
 import com.bps.publikasistatistik.presentation.home.components.PublicationListItem

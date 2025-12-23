@@ -49,7 +49,7 @@ class NotificationViewModel @Inject constructor(
                 getUnreadCountUseCase().collect { result ->
                     if (result is Resource.Success) {
                         _state.value = _state.value.copy(
-                            unreadCount = result.data ?: 0
+                            unreadCount = result.data?.toInt() ?: 0
                         )
                     }
                 }

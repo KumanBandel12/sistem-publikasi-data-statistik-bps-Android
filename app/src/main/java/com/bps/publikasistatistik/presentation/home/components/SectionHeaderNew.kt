@@ -14,7 +14,7 @@ import com.bps.publikasistatistik.R
 import com.bps.publikasistatistik.presentation.theme.TextSecondary
 
 @Composable
-fun SectionHeader(
+fun SectionHeaderNew(
     title: String,
     onSeeAllClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
