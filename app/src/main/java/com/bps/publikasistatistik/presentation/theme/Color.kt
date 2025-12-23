@@ -38,3 +38,11 @@ val BackgroundCard = Color(0xFFFFFFFF)
 val BackgroundScreen = Color(0xFFF9FAFB)
 val TagBackground = Color(0xFFEEF2FF)
 val TagText = Color(0xFF4F46E5)
+
+// Featured Publications (Orange gradient)
+val FeaturedLabelStartColor = Color(0xFFFBBB49)
+val FeaturedLabelEndColor = Color(0xFFED9E36)
+
+// Regular Publications (Grey-Navy gradient)
+val SubCategoryLabelStartColor = Color(0xFF64748B)
+val SubCategoryLabelEndColor = Color(0xFF213555)

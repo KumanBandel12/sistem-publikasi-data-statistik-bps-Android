@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +36,13 @@ fun PublicationCardHorizontal(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val subCategoryLabelGradient = Brush.horizontalGradient(
+        colors = listOf(
+            Color(0xFF64748B), // Left - Slate grey
+            Color(0xFF213555)  // Right - Dark navy
+        )
+    )
+
     Card(
         onClick = onClick,
         modifier = modifier
@@ -45,7 +53,7 @@ fun PublicationCardHorizontal(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
-            // Cover Image
+            // Cover Image with Gradient Label
             Box {
                 AsyncImage(
                     model = coverUrl,
@@ -57,20 +65,15 @@ fun PublicationCardHorizontal(
                     contentScale = ContentScale.Crop
                 )
                 
-                // Category Tag
-                Surface(
+                // Gradient Label (Top)
+                Box(
                     modifier = Modifier
+                        .align(Alignment.TopStart)
                         .padding(12.dp)
-                        .align(Alignment.TopStart),
-                    color = TagBackground,
-                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(
+                    GradientLabel(
                         text = category,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Medium,
-                        color = TagText,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        gradient = subCategoryLabelGradient
                     )
                 }
             }

@@ -35,6 +35,8 @@ fun PublicationResponseDto.toDomain(): Publication {
         views = views,
         downloads = downloads,
         categoryName = category?.name ?: "Umum",
+        subCategoryName = category?.name ?: "Umum", // Use category name as sub-category for now
+        publishDate = releaseDate,
         size = fileSizeFormatted ?: "0 KB"
         // Jika di Domain Model kamu butuh field lain (author, releaseDate), tambahkan di sini
     )

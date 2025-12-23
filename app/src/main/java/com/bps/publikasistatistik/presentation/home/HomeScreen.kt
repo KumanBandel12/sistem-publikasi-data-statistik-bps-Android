@@ -143,8 +143,22 @@ fun HomeScreen(
                         })
                     }
                     
-                    // Tab Selector Skeleton
-                    item { Spacer(modifier = Modifier.height(20.dp)) }
+                    // Skeleton Featured Publications
+                    item { 
+                        SectionHeaderNew(
+                            title = "Publikasi Unggulan"
+                        )
+                    }
+                    item {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(3) {
+                                CarouselItemSkeleton()
+                            }
+                        }
+                    }
                     
                     // Skeleton Terbaru (Carousel)
                     item { 
@@ -163,10 +177,10 @@ fun HomeScreen(
                         }
                     }
 
-                    // Skeleton Terpopuler (List)
+                    // Skeleton Populer (List)
                     item { 
                         SectionHeaderNew(
-                            title = "Terpopuler",
+                            title = "Publikasi Populer",
                             modifier = Modifier.padding(top = 16.dp)
                         )
                     }
@@ -187,66 +201,37 @@ fun HomeScreen(
                         })
                     }
                     
-                    // Tab Selector
-                    item {
-                        TabSelector(
-                            selectedTab = state.selectedTab,
-                            onTabSelected = { viewModel.onTabSelected(it) }
-                        )
+                    // Featured Publications Carousel
+                    if (state.featuredPublications.isNotEmpty()) {
+                        item {
+                            FeaturedPublicationsSection(
+                                publications = state.featuredPublications,
+                                onPublicationClick = onNavigateToDetail
+                            )
+                        }
                     }
 
-                    // Display content based on selected tab
-                    when (state.selectedTab) {
-                        HomeTab.TERBARU -> {
-                            // SECTION: TERBARU (Horizontal Scroll)
-                            if (state.latestPublications.isNotEmpty()) {
-                                item {
-                                    SectionHeaderNew(
-                                        title = "Publikasi Terbaru",
-                                        onSeeAllClick = {
-                                            navController.navigate("all_publications/latest")
-                                        }
-                                    )
+                    // SECTION: TERBARU (Horizontal Scroll)
+                    if (state.latestPublications.isNotEmpty()) {
+                        item {
+                            SectionHeaderNew(
+                                title = "Publikasi Terbaru",
+                                onSeeAllClick = {
+                                    navController.navigate("all_publications/latest")
                                 }
-                                item {
-                                    LazyRow(
-                                        contentPadding = PaddingValues(horizontal = 16.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        items(state.latestPublications) { pub ->
-                                            PublicationCardHorizontal(
-                                                title = pub.title,
-                                                description = pub.description,
-                                                coverUrl = pub.coverUrl,
-                                                category = pub.categoryName,
-                                                year = pub.year,
-                                                views = pub.views,
-                                                downloads = pub.downloads,
-                                                onClick = { onNavigateToDetail(pub.id) }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                            )
                         }
-                        
-                        HomeTab.POPULER -> {
-                            // SECTION: POPULER (Vertical List)
-                            if (state.popularPublications.isNotEmpty()) {
-                                item {
-                                    SectionHeaderNew(
-                                        title = "Terpopuler",
-                                        onSeeAllClick = {
-                                            navController.navigate("all_publications/popular")
-                                        }
-                                    )
-                                }
-                                items(state.popularPublications) { pub ->
-                                    PublicationListItem(
+                        item {
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(state.latestPublications) { pub ->
+                                    PublicationCardHorizontal(
                                         title = pub.title,
                                         description = pub.description,
                                         coverUrl = pub.coverUrl,
-                                        category = pub.categoryName,
+                                        category = pub.subCategoryName,
                                         year = pub.year,
                                         views = pub.views,
                                         downloads = pub.downloads,
@@ -254,6 +239,30 @@ fun HomeScreen(
                                     )
                                 }
                             }
+                        }
+                    }
+                    
+                    // SECTION: POPULER (Vertical List)
+                    if (state.popularPublications.isNotEmpty()) {
+                        item {
+                            SectionHeaderNew(
+                                title = "Publikasi Populer",
+                                onSeeAllClick = {
+                                    navController.navigate("all_publications/popular")
+                                }
+                            )
+                        }
+                        items(state.popularPublications) { pub ->
+                            PublicationListItem(
+                                title = pub.title,
+                                description = pub.description,
+                                coverUrl = pub.coverUrl,
+                                category = pub.subCategoryName,
+                                year = pub.year,
+                                views = pub.views,
+                                downloads = pub.downloads,
+                                onClick = { onNavigateToDetail(pub.id) }
+                            )
                         }
                     }
                 }

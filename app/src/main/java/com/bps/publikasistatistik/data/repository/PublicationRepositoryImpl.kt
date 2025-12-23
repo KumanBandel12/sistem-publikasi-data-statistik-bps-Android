@@ -69,6 +69,21 @@ class PublicationRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getFeaturedPublications(): Flow<Resource<List<Publication>>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.getFeaturedPublications()
+            if (response.isSuccessful && response.body()?.success == true) {
+                val data = response.body()?.data?.map { it.toDomain() }?.take(9) ?: emptyList()
+                emit(Resource.Success(data))
+            } else {
+                emit(Resource.Error(response.body()?.message ?: "Gagal memuat publikasi unggulan"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error("Error: ${e.localizedMessage}"))
+        }
+    }
+
     override suspend fun getSuggestions(keyword: String): Flow<Resource<List<String>>> = flow {
         // Tidak perlu emit Loading agar UI tidak berkedip heboh saat mengetik
         try {

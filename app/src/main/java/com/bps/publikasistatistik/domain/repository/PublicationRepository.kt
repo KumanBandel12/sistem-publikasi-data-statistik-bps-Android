@@ -15,6 +15,7 @@ interface PublicationRepository {
 
     suspend fun getPublicationDetail(id: Long): Flow<Resource<Publication>>
     suspend fun getMostDownloaded(limit: Int): Flow<Resource<List<Publication>>>
+    suspend fun getFeaturedPublications(): Flow<Resource<List<Publication>>>
     suspend fun getSuggestions(keyword: String): Flow<Resource<List<String>>>
     suspend fun deletePublication(id: Long): Flow<Resource<Boolean>>
     suspend fun updatePublication(id: Long, request: PublicationRequestDto): Flow<Resource<Boolean>>

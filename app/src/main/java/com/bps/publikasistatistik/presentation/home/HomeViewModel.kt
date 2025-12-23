@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bps.publikasistatistik.domain.usecase.publication.GetFeaturedPublicationsUseCase
 import com.bps.publikasistatistik.domain.usecase.publication.GetMostDownloadedUseCase
 import com.bps.publikasistatistik.domain.usecase.publication.GetPublicationsUseCase
 import com.bps.publikasistatistik.domain.usecase.user.GetProfileUseCase
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getPublicationsUseCase: GetPublicationsUseCase,
     private val getMostDownloadedUseCase: GetMostDownloadedUseCase,
+    private val getFeaturedPublicationsUseCase: GetFeaturedPublicationsUseCase,
     private val getProfileUseCase: GetProfileUseCase
 ) : ViewModel() {
 
@@ -33,6 +35,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadHomeData()
         loadUserProfile()
+        loadFeaturedPublications()
     }
 
     fun getGreeting(): String {
@@ -45,8 +48,24 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onTabSelected(tab: HomeTab) {
-        _state.value = _state.value.copy(selectedTab = tab)
+    private fun loadFeaturedPublications() {
+        viewModelScope.launch {
+            getFeaturedPublicationsUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            featuredPublications = result.data ?: emptyList()
+                        )
+                    }
+                    is Resource.Error -> {
+                        // Keep empty list - section will be hidden
+                    }
+                    is Resource.Loading -> {
+                        // Optional: show loading state
+                    }
+                }
+            }
+        }
     }
 
     private fun loadUserProfile() {
@@ -79,6 +98,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _isRefreshing.value = true
             fetchAll()
+            loadFeaturedPublications() // Also refresh featured publications
             _isRefreshing.value = false
         }
     }
